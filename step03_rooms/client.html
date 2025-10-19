@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Step 3: Rooms</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 5px;
+            margin: 5px 0;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input, select {
+            padding: 10px;
+            font-size: 14px;
+        }
+        input[type="text"] {
+            flex: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .disconnected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .room-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #2196f3;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Step 3: Rooms & Channels</h1>
+    <p>Join different rooms - messages only go to people in the same room!</p>
+
+    <div class="input-group">
+        <label>Your Name: <input type="text" id="clientId" value="User1"></label>
+        <label>Room:
+            <select id="roomId">
+                <option value="lobby">Lobby</option>
+                <option value="general">General</option>
+                <option value="random">Random</option>
+                <option value="tech">Tech Talk</option>
+            </select>
+        </label>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+
+    <div id="status" class="disconnected">Disconnected</div>
+
+    <div id="messages"></div>
+
+    <div class="input-group">
+        <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+        <button onclick="sendMessage()" disabled id="sendBtn">Send</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentRoom = null;
+        let currentClient = null;
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const statusDiv = document.getElementById('status');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            const timestamp = new Date().toLocaleTimeString();
+            messageDiv.textContent = `[${timestamp}] ${text}`;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function connect() {
+            const clientId = document.getElementById('clientId').value || 'User1';
+            const roomId = document.getElementById('roomId').value;
+
+            currentRoom = roomId;
+            currentClient = clientId;
+
+            // Connect to: /ws/{room_id}/{client_id}
+            ws = new WebSocket(`ws://localhost:8000/ws/${roomId}/${clientId}`);
+
+            ws.onopen = () => {
+                statusDiv.innerHTML = `Connected as <strong>${clientId}</strong> <span class="room-badge">Room: ${roomId}</span>`;
+                statusDiv.className = 'connected';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                addMessage(`You joined room: ${roomId}`);
+            };
+
+            ws.onmessage = (event) => {
+                addMessage(event.data);
+            };
+
+            ws.onclose = () => {
+                statusDiv.textContent = 'Disconnected';
+                statusDiv.className = 'disconnected';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+                currentRoom = null;
+                currentClient = null;
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(message);
+                messageInput.value = '';
+            }
+        }
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
