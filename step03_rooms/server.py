@@ -25,7 +25,11 @@ class ConnectionManager:
             for client_id in self.room_connections[room_id]:
                 connection = self.active_connections.get(client_id)
                 if connection:
-                    await connection.send_text(message)
+                    try:
+                        await connection.send_text(message)
+                    except Exception:
+                        # Connection broken, will be cleaned up on disconnect
+                        pass
 
     def disconnect(self, client_id: str, room_id: str):
         if client_id in self.active_connections:
