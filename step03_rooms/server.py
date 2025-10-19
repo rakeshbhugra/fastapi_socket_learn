@@ -44,11 +44,11 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
-@app.websocket("/ws/{room_id}/{client_id}")
+@app.websocket("/ws/{client_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
-    room_id: str,
     client_id: str,
+    room_id: str = "lobby",  # Query parameter with default value
 ):
     await manager.connect(websocket, client_id, room_id)
     await manager.broadcast_to_room(room_id, f"{client_id} joined the room {room_id}")

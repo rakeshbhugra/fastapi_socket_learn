@@ -118,8 +118,8 @@
             currentRoom = roomId;
             currentClient = clientId;
 
-            // Connect to: /ws/{room_id}/{client_id}
-            ws = new WebSocket(`ws://localhost:8000/ws/${roomId}/${clientId}`);
+            // Connect to: /ws/{client_id}?room_id={room_id}
+            ws = new WebSocket(`ws://localhost:8000/ws/${clientId}?room_id=${roomId}`);
 
             ws.onopen = () => {
                 statusDiv.innerHTML = `Connected as <strong>${clientId}</strong> <span class="room-badge">Room: ${roomId}</span>`;

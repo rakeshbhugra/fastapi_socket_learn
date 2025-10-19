@@ -21,10 +21,14 @@ Now we track:
 - Which clients are in which rooms
 
 ```python
-@app.websocket("/ws/{room_id}/{client_id}")
+@app.websocket("/ws/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str, room_id: str = "lobby"):
 ```
 
-URL now has **two path parameters**: room and client name.
+URL uses:
+- **Path parameter** for client_id: `/ws/User1`
+- **Query parameter** for room_id: `?room_id=lobby`
+- Full example: `/ws/User1?room_id=general`
 
 ## How to Test
 
