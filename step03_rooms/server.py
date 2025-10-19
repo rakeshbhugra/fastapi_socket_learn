@@ -36,6 +36,9 @@ class ConnectionManager:
             del self.active_connections[client_id]
         if room_id in self.room_connections:
             self.room_connections[room_id].discard(client_id)
+            # Clean up empty rooms
+            if len(self.room_connections[room_id]) == 0:
+                del self.room_connections[room_id]
 
 
 manager = ConnectionManager()
