@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Step 4: Message Structure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+        }
+        .message {
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .message-chat {
+            background-color: #e3f2fd;
+        }
+        .message-system {
+            background-color: #fff3e0;
+            font-style: italic;
+        }
+        .message-error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .message-broadcast {
+            background-color: #f1f8e9;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        input, select {
+            padding: 10px;
+            font-size: 14px;
+        }
+        input[type="text"] {
+            flex: 1;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .disconnected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .metadata {
+            font-size: 11px;
+            color: #666;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Step 4: Structured Messages with JSON</h1>
+    <p>Messages now have types, timestamps, and unique IDs!</p>
+
+    <div class="input-group">
+        <label>Your Name: <input type="text" id="clientId" value="User1"></label>
+        <label>Room:
+            <select id="roomId">
+                <option value="lobby">Lobby</option>
+                <option value="general">General</option>
+                <option value="random">Random</option>
+            </select>
+        </label>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+
+    <div id="status" class="disconnected">Disconnected</div>
+
+    <div id="messages"></div>
+
+    <div class="input-group">
+        <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+        <button onclick="sendMessage()" disabled id="sendBtn">Send</button>
+    </div>
+
+    <script>
+        let ws = null;
+        let currentRoom = null;
+        let currentClient = null;
+
+        // TODO: Define message types matching the server
+        const MessageType = {
+            MESSAGE: "message",
+            // Add: BROADCAST, ERROR, SYSTEM
+        };
+
+        function addMessage(messageObj) {
+            /**
+             * TODO: Display a structured message
+             *
+             * messageObj has:
+             * - type: MessageType
+             * - data: string (the actual message)
+             * - timestamp: ISO string
+             * - message_id: unique ID
+             * - sender: client_id (optional)
+             *
+             * Tasks:
+             * 1. Create a div with class 'message' and 'message-{type}'
+             * 2. Display the data (message content)
+             * 3. Show metadata: timestamp, sender, message_id
+             * 4. Append to messages div and scroll to bottom
+             */
+
+            // Hint: Use messageObj.type to determine styling
+            // Hint: Format timestamp with new Date(messageObj.timestamp).toLocaleTimeString()
+
+            const messagesDiv = document.getElementById('messages');
+            // Your implementation here
+        }
+
+        function connect() {
+            const clientId = document.getElementById('clientId').value || 'User1';
+            const roomId = document.getElementById('roomId').value;
+
+            currentRoom = roomId;
+            currentClient = clientId;
+
+            ws = new WebSocket(`ws://localhost:8000/ws/${clientId}?room_id=${roomId}`);
+
+            ws.onopen = () => {
+                document.getElementById('status').textContent = `Connected as ${clientId} in ${roomId}`;
+                document.getElementById('status').className = 'connected';
+                document.getElementById('messageInput').disabled = false;
+                document.getElementById('sendBtn').disabled = false;
+            };
+
+            ws.onmessage = (event) => {
+                /**
+                 * TODO: Handle incoming JSON messages
+                 *
+                 * Tasks:
+                 * 1. Parse JSON from event.data
+                 * 2. Pass the parsed object to addMessage()
+                 * 3. Add error handling for invalid JSON
+                 */
+
+                // Hint: Use JSON.parse(event.data)
+                // Your implementation here
+            };
+
+            ws.onclose = () => {
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').className = 'disconnected';
+                document.getElementById('messageInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+                currentRoom = null;
+                currentClient = null;
+            };
+
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+
+        function sendMessage() {
+            const messageText = document.getElementById('messageInput').value.trim();
+
+            if (messageText && ws && ws.readyState === WebSocket.OPEN) {
+                /**
+                 * TODO: Send a structured JSON message
+                 *
+                 * Tasks:
+                 * 1. Create a message object with:
+                 *    - type: MessageType.MESSAGE
+                 *    - data: messageText
+                 *    - sender: currentClient
+                 *    - timestamp: new Date().toISOString()
+                 * 2. Send as JSON using ws.send(JSON.stringify(messageObj))
+                 * 3. Clear the input field
+                 */
+
+                // Hint: Create an object then JSON.stringify() it
+                // Your implementation here
+
+                document.getElementById('messageInput').value = '';
+            }
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
