@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: fastapi_socket_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - fastapi_socket_network
+
+  # Uncomment when ready to run the FastAPI app in Docker
+  # app:
+  #   build: .
+  #   container_name: fastapi_socket_app
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   environment:
+  #     - REDIS_HOST=redis
+  #     - REDIS_PORT=6379
+  #   networks:
+  #     - fastapi_socket_network
+  #   volumes:
+  #     - ./src:/app/src
+
+volumes:
+  redis_data:
+
+networks:
+  fastapi_socket_network:
+    driver: bridge
